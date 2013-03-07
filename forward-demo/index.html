@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PeerConnection Demo 1</title>
+<!-- Load the polyfill to switch-hit between Chrome and Firefox -->
+<script src="script.js"></script>
+<style>
+video {
+  border:5px solid black;
+  width:480px;
+  height:360px;
+}
+button {
+  font: 18px sans-serif;
+  padding: 8px;
+}
+textarea {
+  font-family: monospace;
+  margin: 2px;
+  width:480px;
+  height:640px;
+}
+</style>
+</head>
+<body>
+<video id="vid1" autoplay></video>
+<video id="vid2" autoplay></video>
+<video id="vid3" autoplay></video>
+<br>
+<button id="btn1" onclick="start()">Start</button>
+<button id="btn2" onclick="call()">Call</button>
+<button id="btn4" onclick="forward()">Forward</button>
+<button id="btn3" onclick="hangup()">Hang Up</button>
+<br>
+<xtextarea id="ta1"></textarea>
+<xtextarea id="ta2"></textarea>
+<script>
+//var vid1 = document.getElementById("vid1");
+//var vid2 = document.getElementById("vid2");
+btn1.disabled = false;
+btn2.disabled = true;
+btn3.disabled = true;
+btn4.disabled = true;
+var pc12,pc21,pc13,pc31;
+var localstream;
+var sdpConstraints = {'mandatory': {
+                        'OfferToReceiveAudio':true,
+                        'OfferToReceiveVideo':true }};
+
+function gotStream(stream){
+  trace("Received local stream");
+  // Call the polyfill wrapper to attach the media stream to this element.
+  attachMediaStream(vid1, stream);
+  localstream = stream;
+  btn2.disabled = false;
+}
+
+function start() {
+  trace("Requesting local stream");
+  btn1.disabled = true;
+  // Call into getUserMedia via the polyfill (adapter.js).
+  getUserMedia({audio:true, video:true},
+                gotStream, function() {});
+}
+
+function call() {
+  btn2.disabled = true;
+  btn4.disabled = false;
+  btn3.disabled = false;
+  trace("Starting call");
+  videoTracks = localstream.getVideoTracks();
+  audioTracks = localstream.getAudioTracks();
+  if (videoTracks.length > 0)
+    trace('Using Video device: ' + videoTracks[0].label);
+  if (audioTracks.length > 0)
+    trace('Using Audio device: ' + audioTracks[0].label);
+  var servers = null;
+  pc12 = new RTCPeerConnection(servers);
+  trace("Created local peer connection object pc12");
+  pc12.onicecandidate = iceCallback1;
+  pc21 = new RTCPeerConnection(servers);
+  trace("Created remote peer connection object pc21");
+  pc21.onicecandidate = iceCallback2;
+  pc21.onaddstream = gotRemoteStream2;
+
+  pc12.addStream(localstream);
+  trace("Adding Local Stream to peer connection");
+
+  pc12.createOffer(gotDescription1);
+}
+
+function gotDescription1(desc){
+  pc12.setLocalDescription(desc);
+  trace("Offer from pc12 \n" + desc.sdp);
+  pc21.setRemoteDescription(desc);
+  // Since the "remote" side has no media stream we need
+  // to pass in the right constraints in order for it to
+  // accept the incoming offer of audio and video.
+  pc21.createAnswer(gotDescription2, null, sdpConstraints);
+}
+
+function gotDescription2(desc){
+  pc21.setLocalDescription(desc);
+  trace("Answer from pc21 \n" + desc.sdp);
+  pc12.setRemoteDescription(desc);
+}
+
+function forward() {
+  btn2.disabled = true;
+  btn3.disabled = false;
+  trace("Starting forward");
+  var servers = null;
+  pc23 = new RTCPeerConnection(servers);
+  trace("Created local peer connection object pc23");
+  pc23.onicecandidate = iceCallback3;
+  pc32 = new RTCPeerConnection(servers);
+  trace("Created remote peer connection object pc32");
+  pc32.onicecandidate = iceCallback4;
+  pc32.onaddstream = gotRemoteStream3;
+
+
+
+  pc23.addStream(localstream);
+  trace("Adding Local Stream to peer connection");
+
+  pc23.createOffer(gotDescription3);
+}
+
+function gotDescription3(desc){
+  pc23.setLocalDescription(desc);
+  trace("Offer from pc23 \n" + desc.sdp);
+  pc32.setRemoteDescription(desc);
+  // Since the "remote" side has no media stream we need
+  // to pass in the right constraints in order for it to
+  // accept the incoming offer of audio and video.
+  pc32.createAnswer(gotDescription4, null, sdpConstraints);
+}
+
+function gotDescription4(desc){
+  pc32.setLocalDescription(desc);
+  trace("Answer from pc31 \n" + desc.sdp);
+  pc23.setRemoteDescription(desc);
+}
+
+function hangup() {
+  trace("Ending call");
+  pc12.close();
+  pc21.close();
+  pc12 = null;
+  pc21 = null;
+  btn3.disabled = true;
+  btn2.disabled = false;
+}
+
+function gotRemoteStream2(e){
+  vid2.src = webkitURL.createObjectURL(e.stream);
+  trace("Received remote stream");
+}
+
+function gotRemoteStream3(e){
+  vid3.src = webkitURL.createObjectURL(e.stream);
+  trace("Received remote stream");
+}
+
+function iceCallback1(event){
+  if (event.candidate) {
+    pc21.addIceCandidate(new RTCIceCandidate(event.candidate));
+    trace("Local ICE candidate: \n" + event.candidate.candidate);
+  }
+}
+
+function iceCallback2(event){
+  if (event.candidate) {
+    pc12.addIceCandidate(new RTCIceCandidate(event.candidate));
+    trace("Remote ICE candidate: \n " + event.candidate.candidate);
+  }
+}
+
+function iceCallback3(event){
+  if (event.candidate) {
+    pc32.addIceCandidate(new RTCIceCandidate(event.candidate));
+    trace("Local ICE candidate: \n" + event.candidate.candidate);
+  }
+}
+
+function iceCallback4(event){
+  if (event.candidate) {
+    pc23.addIceCandidate(new RTCIceCandidate(event.candidate));
+    trace("Remote ICE candidate: \n " + event.candidate.candidate);
+  }
+}
+</script>
+</body>
+</html>
