@@ -39,12 +39,12 @@ This is the broadcaster. You will need to give usermedia permission and wait unt
 ### http://yourserver/listener.html
 You can open this file in several browsers and you will get the streamed video. Click the connect button to connect.
 
-## forward-demo (not working)
+## forward-demo (firefox nightly, very slow)
 This demo is to figure it out how to use a remote stream as a localstream. **NOTE:no node server is required**
 
 There are 4 buttons:
 
 * Start : starts the video
 * Call : Send stream to the second video element thought peerconnections (without signaling)
-* Forward : Send the remote stream to the 3rd video (not working)
+* Forward : Send the remote stream to the 3rd video (working very slow, only on firefox nightly)
 * Hang Up

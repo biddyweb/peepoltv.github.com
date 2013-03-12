@@ -110,36 +110,34 @@ function forward() {
   btn3.disabled = false;
   trace("Starting forward");
   var servers = null;
-  pc23 = new RTCPeerConnection(servers);
-  trace("Created local peer connection object pc23");
-  pc23.onicecandidate = iceCallback3;
-  pc32 = new RTCPeerConnection(servers);
-  trace("Created remote peer connection object pc32");
-  pc32.onicecandidate = iceCallback4;
-  pc32.onaddstream = gotRemoteStream3;
+  pc13 = new RTCPeerConnection(servers);
+  trace("Created local peer connection object pc13");
+  pc13.onicecandidate = iceCallback3;
+  pc31 = new RTCPeerConnection(servers);
+  trace("Created remote peer connection object pc31");
+  pc31.onicecandidate = iceCallback4;
+  pc31.onaddstream = gotRemoteStream3;
 
-
-
-  pc23.addStream(localstream);
+  pc13.addStream(forwardstream);
   trace("Adding Local Stream to peer connection");
 
-  pc23.createOffer(gotDescription3);
+  pc13.createOffer(gotDescription3);
 }
 
 function gotDescription3(desc){
-  pc23.setLocalDescription(desc);
-  trace("Offer from pc23 \n" + desc.sdp);
-  pc32.setRemoteDescription(desc);
+  pc13.setLocalDescription(desc);
+  trace("Offer from pc13 \n" + desc.sdp);
+  pc31.setRemoteDescription(desc);
   // Since the "remote" side has no media stream we need
   // to pass in the right constraints in order for it to
   // accept the incoming offer of audio and video.
-  pc32.createAnswer(gotDescription4, null, sdpConstraints);
+  pc31.createAnswer(gotDescription4, null, sdpConstraints);
 }
 
 function gotDescription4(desc){
-  pc32.setLocalDescription(desc);
+  pc31.setLocalDescription(desc);
   trace("Answer from pc31 \n" + desc.sdp);
-  pc23.setRemoteDescription(desc);
+  pc13.setRemoteDescription(desc);
 }
 
 function hangup() {
@@ -153,12 +151,13 @@ function hangup() {
 }
 
 function gotRemoteStream2(e){
-  vid2.src = webkitURL.createObjectURL(e.stream);
+  forwardstream = e.stream;
+  attachMediaStream(vid2, e.stream);
   trace("Received remote stream");
 }
 
 function gotRemoteStream3(e){
-  vid3.src = webkitURL.createObjectURL(e.stream);
+  attachMediaStream(vid3, e.stream);
   trace("Received remote stream");
 }
 
@@ -178,14 +177,14 @@ function iceCallback2(event){
 
 function iceCallback3(event){
   if (event.candidate) {
-    pc32.addIceCandidate(new RTCIceCandidate(event.candidate));
+    pc31.addIceCandidate(new RTCIceCandidate(event.candidate));
     trace("Local ICE candidate: \n" + event.candidate.candidate);
   }
 }
 
 function iceCallback4(event){
   if (event.candidate) {
-    pc23.addIceCandidate(new RTCIceCandidate(event.candidate));
+    pc13.addIceCandidate(new RTCIceCandidate(event.candidate));
     trace("Remote ICE candidate: \n " + event.candidate.candidate);
   }
 }
