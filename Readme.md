@@ -26,7 +26,7 @@ This demo is a classic two-way videoconference over webrtc. The goal was to unde
 
 *You will need to modify the websocket url in the `script.js` file to match the ip where the node server is running.*
 
-Go to the `index.html` file on to computers (you can use to webcams also)
+Go to the `index.html` file on two computers (you can use two webcams also)
 
 ## broadcast-demo
 This demo is a one to many broadcast over webrtc. The goal was to create a simple one-to-many broadcast understanding every line of code.
@@ -39,8 +39,9 @@ This is the broadcaster. You will need to give usermedia permission and wait unt
 ### http://yourserver/listener.html
 You can open this file in several browsers and you will get the streamed video. Click the connect button to connect.
 
-## forward-demo (firefox nightly, very slow)
-This demo is to figure it out how to use a remote stream as a localstream. **NOTE:no node server is required**
+## forward-demo
+###(firefox nightly, very slow)
+This demo was created to figure out how to use a remote stream as a localstream. **NOTE:no node server is required**
 
 There are 4 buttons:
 
@@ -48,3 +49,12 @@ There are 4 buttons:
 * Call : Send stream to the second video element thought peerconnections (without signaling)
 * Forward : Send the remote stream to the 3rd video (working very slow, only on firefox nightly)
 * Hang Up
+
+*You will need to modify the websocket url in the `script.js` file to match the ip where the node server is running.*
+
+Go to the `index.html` file on two computers (you can use two webcams also)
+
+
+## sharescreen-demo
+###Only works on Chrome Canary with a flag enabled.
+This demo broadcasts the main screen of the Host user over webrtc. The goal was to advance and test wether we will be able to use screen sharing as a workaround to relaying a stream.
